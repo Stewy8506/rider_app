@@ -53,10 +53,12 @@ The Rider App is designed to:
 
 ```
 /lib/
-  ├── screens/
-  ├── widgets/
+  ├── core/
+  ├── features/
+  ├── models/
   ├── services/
-  └── models/
+  └── ui/
+  
 ```
 
 ---
