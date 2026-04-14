@@ -1,9 +1,8 @@
-
-
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:sensors_plus/sensors_plus.dart';
+import 'package:flutter/scheduler.dart';
 
 class PhysicsBallBackground extends StatefulWidget {
   final bool isDarkMode;
@@ -17,11 +16,13 @@ class PhysicsBallBackground extends StatefulWidget {
 
 class _PhysicsBallBackgroundState extends State<PhysicsBallBackground>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
+  static Offset _center = const Offset(0, 0);
+  static Offset _velocity = const Offset(0.3, 0.2);
+  static double _prevT = 0;
+  static bool _hasInitFrame = false;
+  static bool _initialized = false;
 
-  Offset _center = const Offset(0, 0);
-  Offset _velocity = const Offset(0.3, 0.2);
-  double _prevT = 0;
+  static final Stopwatch _stopwatch = Stopwatch()..start();
 
   final Random _rand = Random();
   final double _bounds = 1.0;
@@ -34,13 +35,11 @@ class _PhysicsBallBackgroundState extends State<PhysicsBallBackground>
   void initState() {
     super.initState();
 
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 12),
-    )..repeat();
-
-    final angle = _rand.nextDouble() * 2 * pi;
-    _velocity = Offset(cos(angle), sin(angle)) * 0.8;
+    if (!_initialized) {
+      final angle = _rand.nextDouble() * 2 * pi;
+      _velocity = Offset(cos(angle), sin(angle)) * 0.8;
+      _initialized = true;
+    }
 
     _accelSub = accelerometerEventStream().listen((event) {
       _ax = _ax * 0.8 + event.x * 0.2;
@@ -57,16 +56,19 @@ class _PhysicsBallBackgroundState extends State<PhysicsBallBackground>
   @override
   void dispose() {
     _accelSub.cancel();
-    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, _) {
-        final t = _controller.value;
+    return StatefulBuilder(
+      builder: (context, setState) {
+        final t = (_stopwatch.elapsedMilliseconds % 12000) / 12000.0;
+
+        if (!_hasInitFrame) {
+          _prevT = t;
+          _hasInitFrame = true;
+        }
 
         double dt = t - _prevT;
         if (dt < 0) dt += 1;
@@ -103,6 +105,10 @@ class _PhysicsBallBackgroundState extends State<PhysicsBallBackground>
           final dir = speed > 0 ? _velocity / speed : const Offset(1, 0);
           _velocity = dir * minSpeed;
         }
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) setState(() {});
+        });
 
         return Container(
           decoration: BoxDecoration(

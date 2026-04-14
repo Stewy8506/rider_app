@@ -5,8 +5,8 @@ import 'package:rider_app/common/sizes.dart';
 import 'package:rider_app/common/styles/spacing_styles.dart';
 import 'package:rider_app/common/text.dart';
 import 'package:rider_app/ui/physics_ball_background.dart';
-
 import 'package:rider_app/ui/film_grain_overlay.dart';
+import 'package:rider_app/features/authentication/screens/signup.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -370,7 +370,14 @@ class _LoginScreenState extends State<LoginScreen>
                             style: TextStyle(color: secondaryText),
                           ),
                           TextButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const SignupScreen(),
+                                ),
+                              );
+                            },
                             style: TextButton.styleFrom(
                               padding: EdgeInsets.zero,
                               minimumSize: const Size(0, 0),
