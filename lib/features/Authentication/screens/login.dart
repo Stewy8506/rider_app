@@ -4,9 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:rider_app/common/sizes.dart';
 import 'package:rider_app/common/styles/spacing_styles.dart';
 import 'package:rider_app/common/text.dart';
-import 'dart:math';
-import 'package:sensors_plus/sensors_plus.dart';
-import 'dart:async';
+import 'package:rider_app/ui/physics_ball_background.dart';
 
 import 'package:rider_app/ui/film_grain_overlay.dart';
 
@@ -27,16 +25,6 @@ class _LoginScreenState extends State<LoginScreen>
   bool isLoading = false;
   bool _obscurePassword = true;
   bool isDarkMode = true;
-  late final AnimationController _bgController;
-  Offset _center = const Offset(0, 0);
-  Offset _velocity = const Offset(0.3, 0.2);
-  double _prevT = 0;
-  final Random _rand = Random();
-  // configurable bounds for Alignment space (-bounds..+bounds)
-  final double _bounds = 1.0; // try 0.8 for tighter, 1.2 for looser
-  late StreamSubscription<AccelerometerEvent> _accelSub;
-  double _ax = 0;
-  double _ay = 0;
   Color get bgColor => isDarkMode ? Colors.black : Colors.white;
   Color get primaryText => isDarkMode ? Colors.white : Colors.black;
   Color get secondaryText => isDarkMode ? Colors.white70 : Colors.black54;
@@ -47,30 +35,9 @@ class _LoginScreenState extends State<LoginScreen>
   @override
   void initState() {
     super.initState();
-    _bgController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 12),
-    )..repeat();
-
-    final angle = _rand.nextDouble() * 2 * pi;
-    _velocity = Offset(cos(angle), sin(angle)) * 0.8;
-
-    _accelSub = accelerometerEventStream().listen((event) {
-      // Smooth the raw accelerometer values
-      _ax = _ax * 0.8 + event.x * 0.2;
-      _ay = _ay * 0.8 + event.y * 0.2;
-
-      // Apply as a gentle additive force, not a velocity override
-      final dx = -_ax;
-      final dy = _ay;
-
-      _velocity = Offset(_velocity.dx + dx * 0.004, _velocity.dy + dy * 0.004);
-    });
-
     emailFocus.addListener(() {
       setState(() {});
     });
-
     passwordFocus.addListener(() {
       setState(() {});
     });
@@ -78,8 +45,6 @@ class _LoginScreenState extends State<LoginScreen>
 
   @override
   void dispose() {
-    _accelSub.cancel();
-    _bgController.dispose();
     emailController.dispose();
     passwordController.dispose();
     emailFocus.dispose();
@@ -95,78 +60,7 @@ class _LoginScreenState extends State<LoginScreen>
         child: Stack(
           children: [
             Positioned.fill(
-              child: AnimatedBuilder(
-                animation: _bgController,
-                builder: (context, _) {
-                  final t = _bgController.value;
-
-                  double dt = t - _prevT;
-                  if (dt < 0) dt += 1;
-                  _prevT = t;
-
-                  _velocity *= 0.999;
-                  _center += _velocity * dt * 2;
-
-                  const restitution = 0.85;
-
-                  if (_center.dx > _bounds) {
-                    _center = Offset(_bounds, _center.dy);
-                    _velocity = Offset(
-                      -_velocity.dx.abs() * restitution,
-                      _velocity.dy,
-                    );
-                  } else if (_center.dx < -_bounds) {
-                    _center = Offset(-_bounds, _center.dy);
-                    _velocity = Offset(
-                      _velocity.dx.abs() * restitution,
-                      _velocity.dy,
-                    );
-                  }
-
-                  if (_center.dy > _bounds) {
-                    _center = Offset(_center.dx, _bounds);
-                    _velocity = Offset(
-                      _velocity.dx,
-                      -_velocity.dy.abs() * restitution,
-                    );
-                  } else if (_center.dy < -_bounds) {
-                    _center = Offset(_center.dx, -_bounds);
-                    _velocity = Offset(
-                      _velocity.dx,
-                      _velocity.dy.abs() * restitution,
-                    );
-                  }
-
-                  const minSpeed = 0.45;
-                  final speed = _velocity.distance;
-                  if (speed < minSpeed) {
-                    final dir = speed > 0
-                        ? _velocity / speed
-                        : const Offset(1, 0);
-                    _velocity = dir * minSpeed;
-                  }
-
-                  return Container(
-                    decoration: BoxDecoration(
-                      gradient: RadialGradient(
-                        center: Alignment(_center.dx, _center.dy),
-                        radius: 1,
-                        colors: isDarkMode
-                            ? [
-                                Colors.grey.withAlpha(20),
-                                Colors.white.withAlpha(50),
-                                Colors.black.withAlpha(5),
-                              ]
-                            : [
-                                Colors.white.withAlpha(150),
-                                Colors.white.withAlpha(110),
-                                Colors.white,
-                              ],
-                      ),
-                    ),
-                  );
-                },
-              ),
+              child: PhysicsBallBackground(isDarkMode: isDarkMode),
             ),
             GestureDetector(
               onTap: () => FocusScope.of(context).unfocus(),
