@@ -25,6 +25,7 @@ class _LoginScreenState extends State<LoginScreen>
   final FocusNode passwordFocus = FocusNode();
 
   bool isLoading = false;
+  bool _obscurePassword = true;
   bool isDarkMode = true;
   late final AnimationController _bgController;
   Offset _center = const Offset(0, 0);
@@ -89,7 +90,7 @@ class _LoginScreenState extends State<LoginScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: true,
+      resizeToAvoidBottomInset: false,
       body: FilmGrainOverlay(
         child: Stack(
           children: [
@@ -295,14 +296,29 @@ class _LoginScreenState extends State<LoginScreen>
                         child: TextFormField(
                           focusNode: passwordFocus,
                           controller: passwordController,
-                          obscureText: true,
+                          obscureText: _obscurePassword,
                           style: TextStyle(color: primaryText),
+                          onChanged: (_) => setState(() {}),
                           decoration: InputDecoration(
                             hintText: "Password",
                             hintStyle: TextStyle(color: secondaryText),
                             filled: true,
                             fillColor: fieldFill,
                             prefixIcon: Icon(Icons.lock, color: secondaryText),
+                            suffixIcon: passwordController.text.isNotEmpty
+                                ? IconButton(
+                                    icon: Icon(
+                                      _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                                      color: secondaryText,
+                                    ),
+                                    onPressed: () {
+                                      HapticFeedback.selectionClick();
+                                      setState(() {
+                                        _obscurePassword = !_obscurePassword;
+                                      });
+                                    },
+                                  )
+                                : null,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14),
                               borderSide: BorderSide.none,
