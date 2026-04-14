@@ -187,6 +187,7 @@ class _LoginScreenState extends State<LoginScreen>
                             color: primaryText,
                           ),
                           onPressed: () {
+                            HapticFeedback.selectionClick();
                             setState(() {
                               isDarkMode = !isDarkMode;
                             });
@@ -245,6 +246,9 @@ class _LoginScreenState extends State<LoginScreen>
                           focusNode: emailFocus,
                           controller: emailController,
                           style: TextStyle(color: primaryText),
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                          },
                           decoration: InputDecoration(
                             hintText: "Email",
                             hintStyle: TextStyle(color: secondaryText),
@@ -298,6 +302,9 @@ class _LoginScreenState extends State<LoginScreen>
                           controller: passwordController,
                           obscureText: _obscurePassword,
                           style: TextStyle(color: primaryText),
+                          onTap: () {
+                            HapticFeedback.selectionClick();
+                          },
                           onChanged: (_) => setState(() {}),
                           decoration: InputDecoration(
                             hintText: "Password",
