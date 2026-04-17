@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -452,22 +453,28 @@ class _LoginScreenState extends State<LoginScreen>
         splashColor: Colors.white10,
         highlightColor: Colors.white10,
         borderRadius: BorderRadius.circular(TSizes.borderRadiusLg),
-        child: Container(
-          padding: const EdgeInsets.all(TSizes.iconSm + 2),
-          decoration: BoxDecoration(
-            color: isDarkMode
-                ? Colors.black.withAlpha(120)
-                : Colors.white.withAlpha(200),
-            borderRadius: BorderRadius.circular(TSizes.borderRadiusLg),
-            border: Border.all(color: borderColor),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(TSizes.borderRadiusLg),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 2.0, sigmaY: 2.0),
+            child: Container(
+              padding: const EdgeInsets.all(TSizes.iconSm + 2),
+              decoration: BoxDecoration(
+                color: isDarkMode
+                    ? Colors.black.withAlpha(120)
+                    : Colors.white.withAlpha(200),
+                borderRadius: BorderRadius.circular(TSizes.borderRadiusLg),
+                border: Border.all(color: borderColor),
+              ),
+              child: icon == Icons.g_mobiledata
+                  ? Image.asset(
+                      'assets/icons/google.png',
+                      height: TSizes.iconMd,
+                      width: TSizes.iconMd,
+                    )
+                  : Icon(icon, color: secondaryText, size: TSizes.iconMd),
+            ),
           ),
-          child: icon == Icons.g_mobiledata
-              ? Image.asset(
-                  'assets/icons/google.png',
-                  height: TSizes.iconMd,
-                  width: TSizes.iconMd,
-                )
-              : Icon(icon, color: secondaryText, size: TSizes.iconMd),
         ),
       ),
     );
@@ -483,19 +490,25 @@ class _LoginScreenState extends State<LoginScreen>
         splashColor: Colors.white10,
         highlightColor: Colors.white10,
         borderRadius: BorderRadius.circular(TSizes.borderRadiusLg),
-        child: Container(
-          padding: const EdgeInsets.all(TSizes.iconSm + 2),
-          decoration: BoxDecoration(
-            color: isDarkMode
-                ? Colors.black.withAlpha(120)
-                : Colors.white.withAlpha(200),
-            borderRadius: BorderRadius.circular(TSizes.borderRadiusLg),
-            border: Border.all(color: borderColor),
-          ),
-          child: Image.asset(
-            assetPath,
-            height: TSizes.iconMd,
-            width: TSizes.iconMd,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(TSizes.borderRadiusLg),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 2.0, sigmaY: 2.0),
+            child: Container(
+              padding: const EdgeInsets.all(TSizes.iconSm + 2),
+              decoration: BoxDecoration(
+                color: isDarkMode
+                    ? Colors.black.withAlpha(120)
+                    : Colors.white.withAlpha(200),
+                borderRadius: BorderRadius.circular(TSizes.borderRadiusLg),
+                border: Border.all(color: borderColor),
+              ),
+              child: Image.asset(
+                assetPath,
+                height: TSizes.iconMd,
+                width: TSizes.iconMd,
+              ),
+            ),
           ),
         ),
       ),
