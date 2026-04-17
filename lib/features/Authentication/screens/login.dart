@@ -414,7 +414,7 @@ class _LoginScreenState extends State<LoginScreen>
                           _socialIcon(Icons.g_mobiledata),
                           _socialIcon(Icons.facebook),
                           _socialIcon(Icons.apple),
-                          _socialIconAsset('assets/icons/github.png'),
+                          _socialIconAsset(isDarkMode ? 'assets/icons/github_dark.png' : 'assets/icons/github_light.png'),
                         ],
                       ),
 

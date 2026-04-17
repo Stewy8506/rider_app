@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class NavigationWidget extends StatefulWidget {
   NavigationWidget({super.key});
   int _selectedIndex = 0;
-  bool _isSwiping = false;
+  final bool _isSwiping = false;
 
   @override
   State<NavigationWidget> createState() => _NavigationWidgetState();

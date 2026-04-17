@@ -179,7 +179,7 @@ class _PhysicsBallBackgroundState extends State<PhysicsBallBackground>
                                                   alpha: 0.05,
                                                 ),
                                           blurRadius: wheelSize * 0.15,
-                                          spreadRadius: wheelSize * 0.05,
+                                          spreadRadius: wheelSize * 0.10,
                                         ),
                                       ],
                                     ),
