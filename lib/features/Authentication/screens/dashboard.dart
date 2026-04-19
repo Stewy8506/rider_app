@@ -21,9 +21,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Color getRideColor(int score) {
     if (score >= 8) return Colors.green;
-    if (score >= 5) return Colors.orange;
+    if (score >= 5) return Colors.yellow;
+    if (score >= 2) return Colors.orange;
     return Colors.red;
   }
+
+  int rideScore = 8; // Example score, replace with actual logic
 
   @override
   Widget build(BuildContext context) {
@@ -98,6 +101,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Container(
                         padding: const EdgeInsets.only(bottom: 16),
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Container(
                               width: 80,
@@ -106,7 +110,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 color: surfaceColor,
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              child: const Icon(WeatherIcons.day_sunny),
+                              child: Icon(WeatherIcons.day_sunny),
                             ),
 
                             const SizedBox(width: TSizes.md),
@@ -174,43 +178,57 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               ),
                             ),
 
-                            // Ride score circle
-                            Container(
-                              width: 75,
-                              height: 75,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: isDarkMode
-                                    ? Color(0xFF0E0E10)
-                                    : Colors.white,
-                                border: Border.all(
-                                  color: getRideColor(8),
-                                  width: 2,
-                                ),
-                              ),
-                              child: Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      "8/10",
-                                      style: TextStyle(
-                                        color: primaryText,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
+                            // Ride score circle + label
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Container(
+                                  width: 64,
+                                  height: 64,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: isDarkMode ? const Color(0xFF0E0E10) : Colors.white,
+                                    border: Border.all(
+                                      color: getRideColor(rideScore),
+                                      width: 2,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: getRideColor(rideScore).withAlpha(60),
+                                        blurRadius: 16,
+                                        spreadRadius: 1,
+                                      ),
+                                    ],
+                                  ),
+                                  child: Center(
+                                    child: Transform.translate(
+                                      offset: const Offset(2, 1),
+                                      child: Text(
+                                        rideScore.toString(),
+                                        textAlign: TextAlign.center,
+                                        style: GoogleFonts.bitcountPropSingle(
+                                          color: primaryText,
+                                          fontSize: TSizes.fontXl,
+                                          height: 1,
+                                        ),
                                       ),
                                     ),
-                                    
-                                    Text(
-                                      "Confidence",
-                                      style: GoogleFonts.poppins(
-                                        color: secondaryText,
-                                        fontSize: TSizes.fontXs,
-                                      ),
-                                    ),
-                                  ],
+                                  ),
                                 ),
-                              ),
+
+                                const SizedBox(height: 4),
+
+                                Text(
+                                  "Confidence",
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.poppins(
+                                    color: secondaryText,
+                                    fontSize: TSizes.fontXs,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -330,7 +348,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 minHeight: 4,
                                 color: Colors.blueAccent,
                                 backgroundColor: isDarkMode
-                                    ? Colors.black54
+                                    ? Colors.grey
                                     : Colors.grey[300],
                               ),
                             ),
