@@ -7,6 +7,7 @@ import 'map_view_model.dart';
 import '../Navigation/navigation_controller.dart';
 import '../../core/models/navigation_state.dart';
 import 'widgets/search_bar.dart';
+import 'Widgets/search_view_model.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -131,6 +132,10 @@ class _MapPageState extends State<MapPage> {
                   zoomControlsEnabled: false,
                   myLocationButtonEnabled: false,
                   compassEnabled: false,
+                  onTap: (_) {
+                    FocusScope.of(context).unfocus();
+                    context.read<SearchViewModel>().clearSearch();
+                  },
                   initialCameraPosition: CameraPosition(
                     target: LatLng(
                       vm.currentPosition!.latitude,
@@ -185,83 +190,100 @@ class _MapPageState extends State<MapPage> {
                   ),
                 ),
 
-                /// 🔍 Search Bar
-                if (nav.status != NavigationStatus.navigating)
-                  Positioned(
-                    top: MediaQuery.of(context).padding.top + 10,
-                    left: 16,
-                    right: 16,
-                    child: SafeArea(child: const SearchBarWidget()),
-                  ),
-
-                /// 🧭 Turn Instructions
-                if (nav.status == NavigationStatus.navigating)
-                  Positioned(
-                    top: MediaQuery.of(context).padding.top + 10,
-                    left: 16,
-                    right: 16,
-                    child: Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: nav.isRerouting
-                            ? Colors.redAccent.withAlpha(220)
-                            : Colors.black.withAlpha(200),
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Colors.black26,
-                            blurRadius: 10,
-                            offset: Offset(0, 5),
-                          ),
-                        ],
-                      ),
-                      child: nav.isRerouting
-                          ? const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
+                /// ↕️ Animated Top Overlay (Search / Instructions)
+                Positioned(
+                  top: MediaQuery.of(context).padding.top + 10,
+                  left: 16,
+                  right: 16,
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 400),
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeInCubic,
+                    transitionBuilder: (child, animation) {
+                      return FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position: Tween<Offset>(
+                            begin: const Offset(0.0, -0.2),
+                            end: Offset.zero,
+                          ).animate(animation),
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: nav.status == NavigationStatus.idle
+                        ? const SafeArea(
+                            key: ValueKey("search_bar"),
+                            child: SearchBarWidget(),
+                          )
+                        : nav.status == NavigationStatus.navigating
+                            ? SafeArea(
+                                key: const ValueKey("directions_box"),
+                                child: Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: nav.isRerouting
+                                    ? Colors.redAccent.withAlpha(220)
+                                    : Colors.black.withAlpha(200),
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Colors.black26,
+                                    blurRadius: 10,
+                                    offset: Offset(0, 5),
                                   ),
-                                ),
-                                SizedBox(width: 14),
-                                Text(
-                                  "Rerouting...",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            )
-                          : Row(
-                              children: [
-                                const Icon(
-                                  Icons.directions,
-                                  color: Colors.white,
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Text(
-                                    nav.currentStep?.instruction ??
-                                        "Proceed to route",
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w500,
+                                ],
+                              ),
+                              child: nav.isRerouting
+                                  ? const Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2,
+                                          ),
+                                        ),
+                                        SizedBox(width: 14),
+                                        Text(
+                                          "Rerouting...",
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  : Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.directions,
+                                          color: Colors.white,
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Expanded(
+                                          child: Text(
+                                            nav.currentStep?.instruction ??
+                                                "Proceed to route",
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ),
-                                ),
-                              ],
                             ),
-                    ),
+                          )
+                        : const SizedBox.shrink(key: ValueKey("preview_spacer")),
                   ),
+                ),
 
-                /// 🔘 Start Navigation Button
+                /// 🔘 Start / Cancel Navigation Buttons
                 if (nav.status == NavigationStatus.preview)
                   Positioned(
                     bottom: 40,
@@ -269,22 +291,60 @@ class _MapPageState extends State<MapPage> {
                     right: 20,
                     child: SizedBox(
                       height: 55,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.black,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: Colors.black,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                elevation: 8,
+                              ),
+                              onPressed: () {
+                                context.read<NavigationController>().stopNavigation();
+                              },
+                              child: const Text(
+                                "Cancel",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
                           ),
-                          elevation: 8,
-                        ),
-                        onPressed: vm.startNavigation,
-                        child: const Text(
-                          "Start Navigation",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            flex: 2,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.black,
+                                foregroundColor: Colors.white, // Ensure text is visible
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                elevation: 8,
+                              ),
+                              onPressed: () {
+                                final vm = context.read<MapViewModel>();
+                                // trigger map view model start
+                                final navCtrl = context.read<NavigationController>();
+                                if (navCtrl.state.route != null) {
+                                  navCtrl.startNavigation();
+                                }
+                              },
+                              child: const Text(
+                                "Start Navigation",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ),
                   ),

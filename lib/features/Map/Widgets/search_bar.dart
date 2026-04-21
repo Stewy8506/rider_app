@@ -37,15 +37,18 @@ class SearchBarWidget extends StatelessWidget {
                     ),
                   ),
                   child: TextField(
+                    controller: vm.textController,
                     onChanged: vm.onSearchChanged,
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
+                      color: Colors.black,
                     ),
                     decoration: const InputDecoration(
                       hintText: "Search destination...",
+                      hintStyle: TextStyle(color: Colors.black54),
                       border: InputBorder.none,
-                      icon: Icon(Icons.search),
+                      icon: Icon(Icons.search, color: Colors.black),
                     ),
                   ),
                 ),
@@ -101,11 +104,13 @@ class SearchBarWidget extends StatelessWidget {
                                         style: const TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w500,
+                                          color: Colors.black,
                                         ),
                                       ),
                                       leading: const Icon(
                                         Icons.location_on_outlined,
                                         size: 20,
+                                        color: Colors.black87,
                                       ),
                                       onTap: () async {
                                         final navController = context
@@ -127,6 +132,10 @@ class SearchBarWidget extends StatelessWidget {
                                             endLat: fullPlace.latLng.latitude,
                                             endLng: fullPlace.latLng.longitude,
                                           );
+
+                                          // Defocus keyboard and collapse dropdown completely
+                                          FocusScope.of(context).unfocus();
+                                          vm.clearSearch();
                                         }
                                       },
                                     );

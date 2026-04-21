@@ -1,5 +1,3 @@
-
-
 import 'dart:async';
 import 'package:flutter/material.dart';
 
@@ -13,6 +11,7 @@ class SearchViewModel extends ChangeNotifier {
   List<Place> results = [];
   bool isLoading = false;
 
+  final TextEditingController textController = TextEditingController();
   Timer? _debounce;
 
   /// Called on every text change
@@ -62,8 +61,15 @@ class SearchViewModel extends ChangeNotifier {
     }
   }
 
+  void clearSearch() {
+    textController.clear();
+    results = [];
+    notifyListeners();
+  }
+
   @override
   void dispose() {
+    textController.dispose();
     _debounce?.cancel();
     super.dispose();
   }
