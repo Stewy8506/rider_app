@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'dart:ui' as ui;
 import 'package:provider/provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'map_view_model.dart';
-import 'package:geolocator/geolocator.dart';
 import '../Navigation/navigation_controller.dart';
 import '../../core/models/navigation_state.dart';
 import 'widgets/search_bar.dart';

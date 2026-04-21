@@ -25,11 +25,16 @@ class SearchBarWidget extends StatelessWidget {
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.75),
                     borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.2),
+                    ),
                   ),
                   child: TextField(
                     onChanged: vm.onSearchChanged,
@@ -71,12 +76,14 @@ class SearchBarWidget extends StatelessWidget {
                           child: vm.isLoading
                               ? const Padding(
                                   padding: EdgeInsets.all(16),
-                                  child: Center(child: CircularProgressIndicator()),
+                                  child: Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
                                 )
                               : ListView.separated(
                                   shrinkWrap: true,
                                   itemCount: vm.results.length,
-                                  separatorBuilder: (_, __) => Divider(
+                                  separatorBuilder: (context, index) => Divider(
                                     height: 1,
                                     color: Colors.black.withValues(alpha: 0.05),
                                   ),
@@ -84,8 +91,11 @@ class SearchBarWidget extends StatelessWidget {
                                     final place = vm.results[index];
 
                                     return ListTile(
-                                      contentPadding: const EdgeInsets.symmetric(
-                                          horizontal: 14, vertical: 2),
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                            horizontal: 14,
+                                            vertical: 2,
+                                          ),
                                       title: Text(
                                         place.name,
                                         style: const TextStyle(
@@ -98,17 +108,19 @@ class SearchBarWidget extends StatelessWidget {
                                         size: 20,
                                       ),
                                       onTap: () async {
-                                        final navController =
-                                            context.read<NavigationController>();
-                                        final mapVM =
-                                            context.read<MapViewModel>();
+                                        final navController = context
+                                            .read<NavigationController>();
+                                        final mapVM = context
+                                            .read<MapViewModel>();
 
-                                        final fullPlace =
-                                            await vm.selectPlace(place);
+                                        final fullPlace = await vm.selectPlace(
+                                          place,
+                                        );
 
                                         final current = mapVM.currentPosition;
 
-                                        if (fullPlace != null && current != null) {
+                                        if (fullPlace != null &&
+                                            current != null) {
                                           navController.setDestination(
                                             startLat: current.latitude,
                                             startLng: current.longitude,

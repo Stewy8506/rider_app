@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import '../../core/models/navigation_state.dart';
-import '../../core/models/route_model.dart';
 import '../../core/services/navigation_service.dart';
 import 'navigation_repository.dart';
 
@@ -74,11 +73,13 @@ class NavigationController extends ChangeNotifier {
 
     _navSub = repository.navigationStream.listen((update) async {
       if (update.isOffRoute) {
-        if (!_isRerouting && _state.route != null && _state.route!.polyline.isNotEmpty) {
+        if (!_isRerouting &&
+            _state.route != null &&
+            _state.route!.polyline.isNotEmpty) {
           _isRerouting = true;
           _state = _state.copyWith(isRerouting: true);
           notifyListeners();
-          
+
           final endPoint = _state.route!.polyline.last;
           try {
             final newRoute = await repository.getRoute(
@@ -89,7 +90,7 @@ class NavigationController extends ChangeNotifier {
             );
             // This cleanly overwrites the route in NavigationService
             repository.startNavigation(newRoute);
-            
+
             // Update UI state with new route
             _state = _state.copyWith(route: newRoute);
           } catch (e) {
@@ -105,8 +106,7 @@ class NavigationController extends ChangeNotifier {
 
       final total = _state.route?.distance ?? 1;
 
-      final progress =
-          1 - (update.remainingDistance / total);
+      final progress = 1 - (update.remainingDistance / total);
 
       _state = _state.copyWith(
         status: NavigationStatus.navigating,
