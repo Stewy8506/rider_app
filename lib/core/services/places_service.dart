@@ -23,11 +23,22 @@ class PlacesService {
   }
 
   /// Search places using autocomplete API
-  Future<List<Place>> searchPlaces(String query) async {
+  Future<List<Place>> searchPlaces(
+    String query, {
+    double? lat,
+    double? lng,
+    int? radius,
+  }) async {
     if (query.isEmpty) return [];
 
+    final locationParam = (lat != null && lng != null)
+        ? '&location=$lat,$lng&radius=${radius ?? 30000}'
+        : '';
+
+    final strictBoundsParam = (lat != null && lng != null) ? '&strictbounds=true' : '';
+
     final url =
-        'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$query&key=$apiKey';
+        'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$query$locationParam$strictBoundsParam&components=country:in&key=$apiKey';
 
     final response = await http.get(Uri.parse(url));
     final data = jsonDecode(response.body);

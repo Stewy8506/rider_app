@@ -190,7 +190,7 @@ class _MapPageState extends State<MapPage> {
                   ),
                 ),
 
-                /// ↕️ Animated Top Overlay (Search / Instructions)
+                /// ↕️ Animated Top Overlay (Unified Panel)
                 Positioned(
                   top: MediaQuery.of(context).padding.top + 10,
                   left: 16,
@@ -211,75 +211,29 @@ class _MapPageState extends State<MapPage> {
                         ),
                       );
                     },
-                    child: nav.status == NavigationStatus.idle
-                        ? const SafeArea(
-                            key: ValueKey("search_bar"),
-                            child: SearchBarWidget(),
-                          )
-                        : nav.status == NavigationStatus.navigating
-                            ? SafeArea(
-                                key: const ValueKey("directions_box"),
-                                child: Container(
-                              padding: const EdgeInsets.all(14),
-                              decoration: BoxDecoration(
-                                color: nav.isRerouting
-                                    ? Colors.redAccent.withAlpha(220)
-                                    : Colors.black.withAlpha(200),
-                                borderRadius: BorderRadius.circular(16),
-                                boxShadow: const [
-                                  BoxShadow(
-                                    color: Colors.black26,
-                                    blurRadius: 10,
-                                    offset: Offset(0, 5),
-                                  ),
-                                ],
-                              ),
-                              child: nav.isRerouting
-                                  ? const Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        SizedBox(
-                                          width: 20,
-                                          height: 20,
-                                          child: CircularProgressIndicator(
-                                            color: Colors.white,
-                                            strokeWidth: 2,
-                                          ),
-                                        ),
-                                        SizedBox(width: 14),
-                                        Text(
-                                          "Rerouting...",
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ],
-                                    )
-                                  : Row(
-                                      children: [
-                                        const Icon(
-                                          Icons.directions,
-                                          color: Colors.white,
-                                        ),
-                                        const SizedBox(width: 10),
-                                        Expanded(
-                                          child: Text(
-                                            nav.currentStep?.instruction ??
-                                                "Proceed to route",
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                    child: SafeArea(
+                      key: const ValueKey("top_panel"),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withAlpha(179),
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Colors.black26,
+                                  blurRadius: 12,
+                                  offset: Offset(0, 6),
+                                ),
+                              ],
                             ),
-                          )
-                        : const SizedBox.shrink(key: ValueKey("preview_spacer")),
+                            child: const SearchBarWidget(),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
 
@@ -352,6 +306,7 @@ class _MapPageState extends State<MapPage> {
                 /// 🧭 Navigation Bottom Panel
                 if (nav.status == NavigationStatus.navigating)
                   Positioned(
+                    top: 0,
                     bottom: 0,
                     left: 0,
                     right: 0,

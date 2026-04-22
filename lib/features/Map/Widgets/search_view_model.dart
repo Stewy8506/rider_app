@@ -14,6 +14,20 @@ class SearchViewModel extends ChangeNotifier {
   final TextEditingController textController = TextEditingController();
   Timer? _debounce;
 
+  String? currentCityName;
+  double? currentLat;
+  double? currentLng;
+
+  Future<void> setCurrentLocation({required double lat, required double lng}) async {
+    currentLat = lat;
+    currentLng = lng;
+  }
+
+  bool _isExplicitCitySearch(String query) {
+    final q = query.toLowerCase();
+    return q.contains(",") || q.split(" ").length > 2;
+  }
+
   /// Called on every text change
   void onSearchChanged(String query) {
     _debounce?.cancel();
@@ -35,8 +49,23 @@ class SearchViewModel extends ChangeNotifier {
       isLoading = true;
       notifyListeners();
 
-      final res = await placesService.searchPlaces(query);
-      results = res;
+      final explicit = _isExplicitCitySearch(query);
+
+      final res = await placesService.searchPlaces(
+        query,
+        lat: explicit ? null : currentLat,
+        lng: explicit ? null : currentLng,
+        radius: explicit ? null : 30000,
+      );
+
+      if (!explicit && currentCityName != null) {
+        results = res.where((place) {
+          final name = place.name.toLowerCase();
+          return name.contains(currentCityName!);
+        }).toList();
+      } else {
+        results = res;
+      }
     } catch (e) {
       results = [];
     } finally {
