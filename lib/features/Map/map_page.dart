@@ -19,6 +19,7 @@ class MapPage extends StatefulWidget {
 class _MapPageState extends State<MapPage> {
   GoogleMapController? _mapController;
   bool _isCameraStableDriveView = false;
+  MapType _currentMapType = MapType.normal;
 
   Future<void> _fitCameraToRoute(NavigationState state) async {
     if (_mapController == null || state.route == null) return;
@@ -151,6 +152,7 @@ class _MapPageState extends State<MapPage> {
                       : const EdgeInsets.only(top: 140, bottom: 100),
                   myLocationEnabled: true,
                   polylines: _buildPolylines(nav),
+                  mapType: _currentMapType,
                   onMapCreated: (controller) async {
                     _mapController = controller;
 
@@ -211,29 +213,31 @@ class _MapPageState extends State<MapPage> {
                         ),
                       );
                     },
-                    child: SafeArea(
-                      key: const ValueKey("top_panel"),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withAlpha(179),
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Colors.black26,
-                                  blurRadius: 12,
-                                  offset: Offset(0, 6),
+                    child: nav.status == NavigationStatus.navigating
+                        ? const SizedBox(key: ValueKey("empty"))
+                        : SafeArea(
+                            key: const ValueKey("top_panel"),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withAlpha(179),
+                                    borderRadius: BorderRadius.circular(20),
+                                    boxShadow: const [
+                                      BoxShadow(
+                                        color: Colors.black26,
+                                        blurRadius: 12,
+                                        offset: Offset(0, 6),
+                                      ),
+                                    ],
+                                  ),
+                                  child: const SearchBarWidget(),
                                 ),
                               ],
                             ),
-                            child: const SearchBarWidget(),
                           ),
-                        ],
-                      ),
-                    ),
                   ),
                 ),
 
@@ -258,7 +262,9 @@ class _MapPageState extends State<MapPage> {
                                 elevation: 8,
                               ),
                               onPressed: () {
-                                context.read<NavigationController>().stopNavigation();
+                                context
+                                    .read<NavigationController>()
+                                    .stopNavigation();
                               },
                               child: const Text(
                                 "Cancel",
@@ -275,7 +281,8 @@ class _MapPageState extends State<MapPage> {
                             child: ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.black,
-                                foregroundColor: Colors.white, // Ensure text is visible
+                                foregroundColor:
+                                    Colors.white, // Ensure text is visible
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
                                 ),
@@ -284,7 +291,8 @@ class _MapPageState extends State<MapPage> {
                               onPressed: () {
                                 final vm = context.read<MapViewModel>();
                                 // trigger map view model start
-                                final navCtrl = context.read<NavigationController>();
+                                final navCtrl = context
+                                    .read<NavigationController>();
                                 if (navCtrl.state.route != null) {
                                   navCtrl.startNavigation();
                                 }
@@ -303,13 +311,99 @@ class _MapPageState extends State<MapPage> {
                     ),
                   ),
 
+                /// 🎮 Map Controls (Locate, Compass, Zoom)
+                Positioned(
+                  right: 16,
+                  bottom: nav.status == NavigationStatus.navigating ? 140 : 120,
+                  child: Column(
+                    children: [
+                      // Map Type Toggle
+                      _buildMapControlButton(
+                        icon: _currentMapType == MapType.normal
+                            ? Icons.satellite_alt
+                            : Icons.map,
+                        onTap: () {
+                          setState(() {
+                            _currentMapType = _currentMapType == MapType.normal
+                                ? MapType.hybrid
+                                : MapType.normal;
+                          });
+                        },
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      // Locate Me
+                      _buildMapControlButton(
+                        icon: Icons.my_location,
+                        onTap: () async {
+                          final pos = vm.currentPosition;
+                          if (pos != null && _mapController != null) {
+                            await _mapController!.animateCamera(
+                              CameraUpdate.newLatLngZoom(
+                                LatLng(pos.latitude, pos.longitude),
+                                17,
+                              ),
+                            );
+                          }
+                        },
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      // Compass / Reset Bearing
+                      _buildMapControlButton(
+                        icon: Icons.explore,
+                        onTap: () async {
+                          final pos = vm.currentPosition;
+                          if (pos != null && _mapController != null) {
+                            await _mapController!.animateCamera(
+                              CameraUpdate.newCameraPosition(
+                                CameraPosition(
+                                  target: LatLng(pos.latitude, pos.longitude),
+                                  zoom: 17,
+                                  bearing: 0,
+                                  tilt: 0,
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+
+                      const SizedBox(height: 10),
+
+                      // Zoom In
+                      _buildMapControlButton(
+                        icon: Icons.add,
+                        onTap: () async {
+                          if (_mapController != null) {
+                            _mapController!.animateCamera(CameraUpdate.zoomIn());
+                          }
+                        },
+                      ),
+
+                      const SizedBox(height: 6),
+
+                      // Zoom Out
+                      _buildMapControlButton(
+                        icon: Icons.remove,
+                        onTap: () async {
+                          if (_mapController != null) {
+                            _mapController!.animateCamera(CameraUpdate.zoomOut());
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+
                 /// 🧭 Navigation Bottom Panel
                 if (nav.status == NavigationStatus.navigating)
                   Positioned(
-                    top: 0,
-                    bottom: 0,
                     left: 0,
                     right: 0,
+                    bottom: 0,
                     child: _buildNavigationPanel(nav),
                   ),
               ],
@@ -357,6 +451,26 @@ class _MapPageState extends State<MapPage> {
             true, // Forces smooth earth-curve rendering for long straightaways
       ),
     };
+  }
+
+  Widget _buildMapControlButton({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(14),
+      elevation: 6,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: SizedBox(
+          width: 44,
+          height: 44,
+          child: Icon(icon, color: Colors.black87),
+        ),
+      ),
+    );
   }
 
   Widget _buildNavigationPanel(NavigationState nav) {

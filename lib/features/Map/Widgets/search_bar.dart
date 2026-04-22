@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../core/models/navigation_state.dart';
 
 import '../Widgets/search_view_model.dart';
 import '../map_view_model.dart';
@@ -13,6 +14,7 @@ class SearchBarWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final vm = context.watch<SearchViewModel>();
+    final navStatus = context.watch<NavigationController>().state.status;
 
     return Stack(
       children: [
@@ -47,30 +49,33 @@ class SearchBarWidget extends StatelessWidget {
                   ),
                   child: TextField(
                     controller: vm.textController,
-                    onChanged: vm.onSearchChanged,
+                    readOnly: navStatus != NavigationStatus.idle,
+                    onChanged: navStatus == NavigationStatus.idle ? vm.onSearchChanged : null,
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.w500,
                       color: Colors.black,
                     ),
-                    decoration: const InputDecoration(
+                    maxLines: 1,
+                    minLines: 1,
+                    scrollPhysics: const BouncingScrollPhysics(),
+                    keyboardType: TextInputType.text,
+                    decoration: InputDecoration(
                       hintText: "Search destination...",
-                      hintStyle: TextStyle(color: Colors.black54),
+                      hintStyle: const TextStyle(color: Colors.black54),
                       border: InputBorder.none,
-                      icon: Icon(Icons.search, color: Colors.black),
+                      icon: navStatus == NavigationStatus.idle
+                          ? const Icon(Icons.search, color: Colors.black)
+                          : null,
                     ),
                   ),
                 ),
               ],
             ),
 
-            if (vm.results.isNotEmpty || vm.isLoading) ...[
+            if ((vm.results.isNotEmpty || vm.isLoading) && navStatus == NavigationStatus.idle) ...[
               const SizedBox(height: 4),
-              const Divider(
-                height: 10,
-                thickness: 0.5,
-                color: Colors.black12,
-              ),
+              const Divider(height: 10, thickness: 0.5, color: Colors.black12),
             ],
 
             // Results Dropdown
@@ -79,15 +84,18 @@ class SearchBarWidget extends StatelessWidget {
               curve: Curves.easeOutCubic,
               child: AnimatedOpacity(
                 duration: const Duration(milliseconds: 200),
-                opacity: (vm.results.isNotEmpty || vm.isLoading) ? 1 : 0,
-                child: (vm.results.isNotEmpty || vm.isLoading)
+                opacity: ((vm.results.isNotEmpty || vm.isLoading) && navStatus == NavigationStatus.idle) ? 1 : 0,
+                child: ((vm.results.isNotEmpty || vm.isLoading) && navStatus == NavigationStatus.idle)
                     ? Stack(
                         children: [
                           Positioned.fill(
                             child: ClipRRect(
                               borderRadius: BorderRadius.circular(18),
                               child: BackdropFilter(
-                                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                                filter: ImageFilter.blur(
+                                  sigmaX: 18,
+                                  sigmaY: 18,
+                                ),
                                 child: const SizedBox(),
                               ),
                             ),
@@ -112,23 +120,31 @@ class SearchBarWidget extends StatelessWidget {
                                 : ListView.separated(
                                     shrinkWrap: true,
                                     itemCount: vm.results.length,
-                                    separatorBuilder: (context, index) => Divider(
-                                      height: 1,
-                                      color: Colors.black.withValues(alpha: 0.05),
-                                    ),
+                                    separatorBuilder: (context, index) =>
+                                        Divider(
+                                          height: 1,
+                                          color: Colors.black.withValues(
+                                            alpha: 0.05,
+                                          ),
+                                        ),
                                     itemBuilder: (context, index) {
                                       final place = vm.results[index];
 
                                       return ListTile(
-                                        contentPadding: const EdgeInsets.symmetric(
-                                          horizontal: 10,
-                                          vertical: 2,
-                                        ),
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                              vertical: 2,
+                                            ),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                         ),
                                         leading: Padding(
-                                          padding: const EdgeInsets.only(top: 4),
+                                          padding: const EdgeInsets.only(
+                                            top: 4,
+                                          ),
                                           child: const Icon(
                                             Icons.location_on_outlined,
                                             size: 20,
@@ -144,7 +160,11 @@ class SearchBarWidget extends StatelessWidget {
                                           ),
                                         ),
                                         subtitle: Text(
-                                          place.name.split(',').skip(1).join(',').trim(),
+                                          place.name
+                                              .split(',')
+                                              .skip(1)
+                                              .join(',')
+                                              .trim(),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: const TextStyle(
@@ -157,10 +177,12 @@ class SearchBarWidget extends StatelessWidget {
                                           final mapVM = context.read<MapViewModel>();
 
                                           final fullPlace = await vm.selectPlace(place);
-
                                           final current = mapVM.currentPosition;
 
                                           if (fullPlace != null && current != null) {
+                                            // Set full place name in search bar
+                                            vm.textController.text = place.name;
+
                                             navController.setDestination(
                                               startLat: current.latitude,
                                               startLng: current.longitude,
@@ -169,7 +191,6 @@ class SearchBarWidget extends StatelessWidget {
                                             );
 
                                             FocusScope.of(context).unfocus();
-                                            vm.clearSearch();
                                           }
                                         },
                                       );
